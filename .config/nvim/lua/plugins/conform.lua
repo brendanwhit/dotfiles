@@ -1,5 +1,5 @@
-local conform_ok, conform = pcall(require, "conform")
-if not conform_ok then
+local ok, conform = pcall(require, "conform")
+if not ok then
 	return
 end
 

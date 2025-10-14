@@ -24,7 +24,6 @@ end
 -- This function is called by your keybinding
 function M.compare_with_default()
 	local branch = get_default_branch()
-	-- Use the diffview API directly instead of vim.cmd
 	diffview.open(branch)
 end
 
