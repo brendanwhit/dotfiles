@@ -14,17 +14,58 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 		os.exit(1)
 	end
 end
-vim.opt.rtp:prepend(lazypath)
+vim.opt.runtimepath:prepend(lazypath)
 
--- Setup lazy.nvim
-require("lazy").setup({
-	spec = {
-		-- import your plugins
-		{ import = "plugins" },
+local ok, lazy = pcall(require, "lazy")
+if not ok then
+	print("lazy not installed")
+	return
+end
+--------------------
+--- plugins list ---
+--------------------
+local plugins = {
+	require("plugins.coding"),
+	require("plugins.colorscheme"),
+	require("plugins.context"),
+	require("plugins.editor"),
+	require("plugins.git"),
+	require("plugins.linting"),
+	require("plugins.lsp"),
+	require("plugins.navigation"),
+	{
+		"sindrets/diffview.nvim",
+		keys = {
+			{
+				"<leader>pr",
+				function()
+					require("plugins.diffview").compare_with_default()
+				end,
+				{ desc = "Compare as if PR" },
+			},
+		},
 	},
-	-- Configure any other settings here. See the documentation for more details.
+	{
+		"stevearc/conform.nvim",
+		event = { "BufWritePre" },
+		cmd = { "ConformInfo" },
+		keys = function()
+			return require("plugins.conform").keys
+		end,
+		opts = function()
+			return require("plugins.conform").opts
+		end,
+		init = function()
+			return require("plugins.conform").init
+		end,
+	},
+}
+
+local opts = {
 	-- colorscheme that will be used when installing plugins.
 	install = { colorscheme = { "habamax" } },
 	-- automatically check for plugin updates
 	checker = { enabled = true },
-})
+}
+
+lazy.setup(plugins, opts)

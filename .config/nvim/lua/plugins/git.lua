@@ -1,15 +1,5 @@
 return {
 	{
-		"sindrets/diffview.nvim",
-		keys = {
-			{
-				"<leader>pr",
-				":DiffviewOpen origin/master<CR>",
-				{ desc = "Compare as if PR" },
-			},
-		},
-	},
-	{
 		"NeogitOrg/neogit",
 		dependencies = {
 			"nvim-lua/plenary.nvim", -- required
