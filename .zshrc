@@ -1,7 +1,8 @@
 # for general auto completions
 autoload -Uz compinit && compinit
 
-export GEM_HOME=/Users/brendan/.gem/ruby/2.6.0 export PATH=$PATH:/Users/brendan/bin:/usr/local/sbin:$GEM_HOME/bin:$HOME/.local/bin
+export GEM_HOME=$HOME/.gem/ruby/2.6.0 
+export PATH=$PATH:$HOME/bin:/usr/local/sbin:$GEM_HOME/bin:$HOME/.local/bin
 export VAULT_ADDR=https://vault.faraday.ai
 
 export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
@@ -87,10 +88,10 @@ precmd() {
 }
 
 # The next line updates PATH for the Google Cloud SDK.
-if [ -f '/Users/brendan/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/brendan/google-cloud-sdk/path.zsh.inc'; fi
+if [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ]; then . "$HOME/google-cloud-sdk/path.zsh.inc"; fi
 
 # The next line enables shell command completion for gcloud.
-if [ -f '/Users/brendan/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/brendan/google-cloud-sdk/completion.zsh.inc'; fi
+if [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ]; then . "$HOME/google-cloud-sdk/completion.zsh.inc"; fi
 
 delete-stale-branches() {
     git fetch -p && git for-each-ref --format '%(refname:short) %(upstream:track)' | awk '$2 == "[gone]" {print $1}' | xargs -r git branch -D
