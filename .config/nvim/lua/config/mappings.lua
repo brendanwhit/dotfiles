@@ -12,21 +12,10 @@ end
 
 local keymap = vim.keymap
 
--- toggle relative line number for the window
--- see https://neovim.io/doc/user/lua-guide.html#lua-guide-options for discussion between o, opt, wo
-local function toggle_relative_line()
-	if vim.wo.relativenumber then
-		vim.wo.relativenumber = false
-	else
-		vim.wo.relativenumber = true
-	end
+local ok, utils = pcall(require, "core.utils")
+if not ok then
+	return
 end
-
--- Make sure to setup `mapleader` and `maplocalleader` before
--- loading lazy.nvim so that mappings are correct.
--- This is also a good place to setup other settings (vim.opt)
-vim.g.mapleader = " "
-vim.g.maplocalleader = "\\"
 
 -----------------
 -- Normal mode --
@@ -36,7 +25,7 @@ keymap.set("n", "bd", ":bdelete<cr>", keyopts("Delete the current buffer"))
 keymap.set("n", "<CR>", ":nohlsearch<CR>", keyopts("Disable highlights after done with searching"))
 
 -- toggle the relative line number
-keymap.set("n", "<leader>r", toggle_relative_line, keyopts("Toggle relative line numbers for pairing"))
+keymap.set("n", "<leader>r", utils.toggle_relative_line, keyopts("Toggle relative line numbers for pairing"))
 
 -- Visual mode --
 -----------------
