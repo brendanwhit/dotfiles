@@ -10,7 +10,7 @@ end
 --
 function PLUGINS()
 	for _, value in pairs(lazy.plugins()) do
-		print("[" .. value.name .. "](" .. value.url .. ")")
+		print("[" .. value.name .. "](" .. value.url .. ")<br>")
 	end
 end
 

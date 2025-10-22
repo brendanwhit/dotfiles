@@ -15,7 +15,7 @@ local function get_default_branch()
 	local obj = vim.system({ "git", "symbolic-ref", "refs/remotes/origin/HEAD", "--short" }, { text = true }):wait()
 
 	if obj.code == 0 then
-		default_branch = vim.trim(obj.stdout)
+		default_branch = vim.trim(obj.stdout):gsub("origin/", "")
 	end
 
 	return default_branch
