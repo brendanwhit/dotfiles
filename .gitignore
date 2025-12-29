@@ -1,0 +1,4 @@
+# be extra cautious about .zsh_history
+.zsh_history
+# avoid recursion problems
+.cfg/
