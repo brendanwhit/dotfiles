@@ -27,8 +27,8 @@ vim.lsp.enable(vim.tbl_keys(configs))
 -------------------------------------------
 -- Diagnostic config, show the errors for the current line
 vim.diagnostic.config({
-	virtual_text = { current_line = true, prefix = "●", source = true },
-	-- virtual_lines = { current_line = true, source = true },
+	-- virtual_text = { current_line = true, prefix = "●", source = true },
+	virtual_lines = { current_line = true, prefix = "●", source = true },
 	update_in_insert = false,
 	float = {
 		border = "rounded",

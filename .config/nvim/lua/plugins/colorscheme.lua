@@ -9,6 +9,7 @@ return {
 	-- },
 	{
 		"ellisonleao/gruvbox.nvim",
+		enabled = false,
 		lazy = false,
 		priority = 1000,
 		opts = { transparent_mode = true },
@@ -20,10 +21,10 @@ return {
 	},
 	{
 		"folke/tokyonight.nvim",
-		enabled = false,
+		enabled = true,
 		lazy = false,
 		priority = 999,
-		opts = { style = "storm", transparent = true },
+		opts = { style = "storm" },
 		config = function(_, opts)
 			local cs = require("tokyonight")
 			cs.setup(opts)

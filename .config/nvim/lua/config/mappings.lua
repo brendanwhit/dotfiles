@@ -20,18 +20,27 @@ end
 -----------------
 -- Normal mode --
 -----------------
-keymap.set("n", "bd", ":bdelete<cr>", keyopts("Delete the current buffer"))
+keymap.set("n", "bd", "<CMD>bdelete<CR>", keyopts("Delete the current buffer"))
 
-keymap.set("n", "<CR>", ":nohlsearch<CR>", keyopts("Disable highlights after done with searching"))
+keymap.set("n", "<CR>", "<CMD>nohlsearch<CR>", keyopts("Disable highlights after done with searching"))
 
 -- toggle the relative line number
 keymap.set("n", "<leader>r", utils.toggle_relative_line, keyopts("Toggle relative line numbers for pairing"))
 
+-- swap how tab cycling and tag cycling work
+keymap.set("n", "[t", "gT", keyopts("move back one tab"))
+keymap.set("n", "]t", "gt", keyopts("move forward one tab"))
+
+keymap.set("n", "gT", "[t", keyopts("move back one tag"))
+keymap.set("n", "gt", "]t", keyopts("move forward one tag"))
+
+-- Oil command to back out of file
+keymap.set("n", "-", "<CMD>Oil<CR>", keyopts("Open parent directory"))
+
+-----------------
 -- Visual mode --
 -----------------
 
 -----------------
 -- Insert mode --
 -----------------
--- no longer needed because I remapped caps lock to CTRL
--- keymap.set("i", "kj", "<esc>", keyopts("Exit insert mode with kj"))
