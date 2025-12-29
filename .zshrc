@@ -4,11 +4,15 @@ autoload -Uz compinit && compinit
 # general PATH setting
 export PATH="$PATH:$HOME/bin:/usr/local/sbin"
 export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
-# use all of the upgraded GNU utils installed by findutils
-export PATH="/usr/local/opt/findutils/libexec/gnubin:$PATH"
+# use all of the upgraded GNU utils installed by brew by adding them to path
+if type brew &>/dev/null; then
+  HOMEBREW_PREFIX=$(brew --prefix)
+  # gnubin
+  for d in ${HOMEBREW_PREFIX}/opt/*/libexec/gnubin; do export PATH=$d:$PATH; done
+fi
 
 # set neovim as default editor
-export EDITOR=/usr/local/bin/nvim
+export EDITOR="/usr/local/bin/nvim"
 
 # be able to save LazyVim in a new config dir
 alias lazyvim='NVIM_APPNAME=nvim-lazyvim nvim' # LazyVim
@@ -178,6 +182,10 @@ cleanup-remove() {
 }
 # alias to work on config bare git
 alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
+
+# basic aliases
+alias ls="ls --color=auto --group-directories-first"
+alias ll='ls -lahF'
 
 # load Faraday settings
 source "$HOME/faraday.zsh"
