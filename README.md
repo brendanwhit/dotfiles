@@ -5,7 +5,7 @@ Following the [example](https://news.ycombinator.com/item?id=11071754) provided 
 They key part to all of this is the `config` alias
 
 ```sh
-alias config='/usr/bin/git --git-dir=$HOME/.myconf/ --work-tree=$HOME'
+alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
 config config status.showUntrackedFiles no
 ```
 
@@ -14,6 +14,6 @@ When copying to a new machine the alias needs to be set again (probably easiest 
 ```sh
 git clone --separate-git-dir=$HOME/.cfg /path/to/repo $HOME/cfg-tmp
 rm -r ~/cfg-tmp
-alias config='/usr/bin/git --git-dir=$HOME/.myconf/ --work-tree=$HOME'
+alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
 config config status.showUntrackedFiles no
 ```
