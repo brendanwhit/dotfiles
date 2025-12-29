@@ -2,9 +2,10 @@
 
 Following the [example](https://news.ycombinator.com/item?id=11071754) provided by StreakyCobra, I'm managing my config using a bare github repo that allows for all tracked files to be version controlled while ignoring untracked files in the `$HOME` dir.
 
-They key part to all of this is the `config` alias
+They key part to all of this is the `config` alias, make sure to set the alias in `.zshrc` or `.bashrc`
 
 ```sh
+git init --bare $HOME/.cfg
 alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
 config config status.showUntrackedFiles no
 ```
