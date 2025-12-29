@@ -81,51 +81,100 @@ delete-stale-branches() {
     git fetch -p && git for-each-ref --format '%(refname:short) %(upstream:track)' | awk '$2 == "[gone]" {print $1}' | xargs -r git branch -D
 }
 
+# Global variables to track worktree state for cleanup
+typeset -g CLEANUP_BRANCH_ORIGINAL_DIR=""
+typeset -g CLEANUP_BRANCH_WORKTREE_DIR=""
+
 # function that allows for separate clean up functionality in github
 # avoids cluttering PRs
 cleanup-branch() {
     local branch_name="housekeeping/$(date +%Y-%m-%d)-${1:-cleanup}"
+    CLEANUP_BRANCH_ORIGINAL_DIR=$(pwd)
+
+    # Get the relative path from git root to current directory
+    local git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+    if [ -z "$git_root" ]; then
+        echo "Error: Not in a git repository"
+        return 1
+    fi
+
+    local rel_path=$(git rev-parse --show-prefix 2>/dev/null)
+    rel_path=${rel_path%/}  # Remove trailing slash if present
 
     if [ ! -d ~/worktrees ]; then
         mkdir -p ~/worktrees
     fi
 
-    git worktree add ~/worktrees/"$branch_name" master
-
-    # might be useful to cd to model_train
-    local model_train="~/worktrees/$branch_name/workers/model_train"
-    # Detect and open IDE
-    if command -v pycharm >/dev/null 2>&1; then
-        # Open PyCharm from command line (location varies by OS)
-        pycharm $model_train >/dev/null 2>&1 &
-    elif command -v code >/dev/null 2>&1; then
-        # Open VS Code in new window
-        code -n $model_train
-    else
-        echo "Neither PyCharm nor VS Code found. Opening directory only."
-        cd $model_train
+    # Get default branch (main or master)
+    local default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+    if [ -z "$default_branch" ]; then
+        default_branch="master"
     fi
 
-    # Create the branch
-    cd $model_train
-    # copy the venv for pdm installs
-    cp "$OLDPWD/.venv" .
-    git checkout -b "$branch_name"
+    # Create worktree with new branch
+    local worktree_dir=~/worktrees/"$branch_name"
+    git worktree add -b "$branch_name" "$worktree_dir" "$default_branch"
+    CLEANUP_BRANCH_WORKTREE_DIR="$worktree_dir"
+
+    # Build the target directory path
+    local target_dir="$worktree_dir"
+    if [ -n "$rel_path" ]; then
+        target_dir="$worktree_dir/$rel_path"
+    fi
+
+    # CD to the equivalent directory in the worktree
+    cd "$target_dir"
+
+    # Copy .venv if it exists in the original directory
+    if [ -d "$CLEANUP_BRANCH_ORIGINAL_DIR/.venv" ]; then
+        cp -r "$CLEANUP_BRANCH_ORIGINAL_DIR/.venv" .
+    fi
 
     echo "Created and switched to new cleanup branch: $branch_name"
-    echo "Original work directory preserved at: $OLDPWD"
+    echo "Working directory: $target_dir"
+
+    # Open the directory in $EDITOR
+    if [ -n "$EDITOR" ]; then
+        $EDITOR .
+    else
+        echo "No \$EDITOR set"
+    fi
 }
 
 # Complementary cleanup function
 cleanup-remove() {
-    local current_dir=$(pwd)
-    if [[ $current_dir == ~/worktrees/* ]]; then
-        cd -
-        git worktree remove "$current_dir"
-        echo "Removed worktree and returned to original directory"
-    else
-        echo "Not in a worktree directory"
+    if [ -z "$CLEANUP_BRANCH_WORKTREE_DIR" ]; then
+        echo "No active worktree to remove (CLEANUP_BRANCH_WORKTREE_DIR not set)"
+        return 1
     fi
+
+    # Get the main repository's git directory while still in the worktree
+    local main_git_dir=$(git rev-parse --git-common-dir 2>/dev/null)
+    local main_repo=$(dirname "$main_git_dir")
+
+    local worktree_root="$CLEANUP_BRANCH_WORKTREE_DIR"
+
+    # Return to the original directory if set, otherwise go home
+    if [ -n "$CLEANUP_BRANCH_ORIGINAL_DIR" ]; then
+        cd "$CLEANUP_BRANCH_ORIGINAL_DIR"
+    else
+        cd ~
+    fi
+
+    # Remove the worktree from the main repo context
+    git -C "$main_repo" worktree remove "$worktree_root" --force
+
+    # Remove the directory if it still exists (e.g., untracked files)
+    if [ -d "$worktree_root" ]; then
+        rm -rf "$worktree_root"
+    fi
+
+    echo "Removed worktree: $worktree_root"
+    echo "Returned to: $(pwd)"
+
+    # Clear the global variables
+    CLEANUP_BRANCH_ORIGINAL_DIR=""
+    CLEANUP_BRANCH_WORKTREE_DIR=""
 }
 # alias to work on config bare git
 alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
