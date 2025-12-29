@@ -78,7 +78,7 @@ config.keys = {
 	{ key = "o", mods = "SUPER", action = act.EmitEvent("toggle-opacity") },
 	-- tmux emulator keys (https://www.florianbellmann.com/blog/switch-from-tmux-to-wezterm)
 	{ key = "-", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
-	{ key = "|", mods = "LEADER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+	{ key = "\\", mods = "LEADER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
 	{ key = "m", mods = "LEADER", action = act.TogglePaneZoomState },
 	{ key = "0", mods = "LEADER", action = act.PaneSelect({ mode = "SwapWithActive" }) },
 	{ key = "w", mods = "LEADER", action = act.CloseCurrentPane({ confirm = false }) },
