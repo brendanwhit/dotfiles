@@ -134,6 +134,25 @@ cleanup-branch() {
         cp -r "$CLEANUP_BRANCH_ORIGINAL_DIR/.venv" .
     fi
 
+    # Copy all Claude config files from the original repo to the worktree
+    local original_git_root=$(cd "$CLEANUP_BRANCH_ORIGINAL_DIR" && git rev-parse --show-toplevel 2>/dev/null)
+    if [ -n "$original_git_root" ]; then
+        # Find and copy all .claude directories
+        find "$original_git_root" -name ".claude" -type d 2>/dev/null | while read claude_dir; do
+            local rel_claude_path="${claude_dir#$original_git_root/}"
+            local target_claude_dir="$worktree_dir/$(dirname "$rel_claude_path")"
+            mkdir -p "$target_claude_dir"
+            cp -r "$claude_dir" "$target_claude_dir/"
+        done
+        # Find and copy all CLAUDE.md files
+        find "$original_git_root" -name "CLAUDE.md" -type f 2>/dev/null | while read claude_file; do
+            local rel_claude_path="${claude_file#$original_git_root/}"
+            local target_claude_dir="$worktree_dir/$(dirname "$rel_claude_path")"
+            mkdir -p "$target_claude_dir"
+            cp "$claude_file" "$target_claude_dir/"
+        done
+    fi
+
     echo "Created and switched to new cleanup branch: $branch_name"
     echo "Working directory: $target_dir"
 
@@ -147,22 +166,46 @@ cleanup-branch() {
 
 # Complementary cleanup function
 cleanup-remove() {
-    if [ -z "$CLEANUP_BRANCH_WORKTREE_DIR" ]; then
-        echo "No active worktree to remove (CLEANUP_BRANCH_WORKTREE_DIR not set)"
-        return 1
+    local worktree_root=""
+    local main_repo=""
+
+    if [ -n "$CLEANUP_BRANCH_WORKTREE_DIR" ]; then
+        # Use the tracked worktree directory
+        worktree_root="$CLEANUP_BRANCH_WORKTREE_DIR"
+        local main_git_dir=$(git rev-parse --git-common-dir 2>/dev/null)
+        main_repo=$(dirname "$main_git_dir")
+    else
+        # Try to detect worktree from current path
+        local current_dir=$(pwd)
+
+        # Check if we're under ~/worktrees/
+        if [[ "$current_dir" != "$HOME/worktrees/"* ]]; then
+            echo "Error: Not in a worktree directory and CLEANUP_BRANCH_WORKTREE_DIR not set"
+            return 1
+        fi
+
+        # Get the main repository's git directory while still in the worktree
+        local main_git_dir=$(git rev-parse --git-common-dir 2>/dev/null)
+        if [ -z "$main_git_dir" ]; then
+            echo "Error: Not in a git repository"
+            return 1
+        fi
+        main_repo=$(dirname "$main_git_dir")
+
+        # Find the worktree root (the directory right after ~/worktrees/)
+        # e.g., ~/worktrees/housekeeping/2024-01-05-cleanup -> extract that path
+        worktree_root=$(git rev-parse --show-toplevel 2>/dev/null)
+        if [ -z "$worktree_root" ]; then
+            echo "Error: Could not determine worktree root"
+            return 1
+        fi
     fi
 
-    # Get the main repository's git directory while still in the worktree
-    local main_git_dir=$(git rev-parse --git-common-dir 2>/dev/null)
-    local main_repo=$(dirname "$main_git_dir")
-
-    local worktree_root="$CLEANUP_BRANCH_WORKTREE_DIR"
-
-    # Return to the original directory if set, otherwise go home
+    # Return to the original directory if set, otherwise go to main repo
     if [ -n "$CLEANUP_BRANCH_ORIGINAL_DIR" ]; then
         cd "$CLEANUP_BRANCH_ORIGINAL_DIR"
     else
-        cd ~
+        cd "$main_repo"
     fi
 
     # Remove the worktree from the main repo context
@@ -186,6 +229,10 @@ alias config='/usr/bin/git --git-dir=$HOME/.cfg/ --work-tree=$HOME'
 # basic aliases
 alias ls="ls --color=auto --group-directories-first"
 alias ll='ls -lahF'
+
+# config aliases
+alias nc="cd ~/.config/nvim && $EDITOR ."
+alias wc="cd ~/.config/wezterm && $EDITOR ."
 
 # load Faraday settings
 source "$HOME/faraday.zsh"
