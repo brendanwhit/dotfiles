@@ -71,7 +71,7 @@ wezterm.on("toggle-opacity", function(window, _)
 end)
 
 -- tmux configuration are better with a leader key
-config.leader = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
+config.leader = { key = "Space", mods = "CTRL", timeout_milliseconds = 1000 }
 config.keys = {
 	-- Claude Code terminal-setup keybinding
 	{ key = "Enter", mods = "SHIFT", action = act.SendString("\x1b\r") },
