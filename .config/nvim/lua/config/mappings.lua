@@ -34,6 +34,9 @@ keymap.set("n", "]t", "gt", keyopts("move forward one tab"))
 keymap.set("n", "gT", "[t", keyopts("move back one tag"))
 keymap.set("n", "gt", "]t", keyopts("move forward one tag"))
 
+keymap.set("n", "[<Space>", utils.blank_above, keyopts("Add count blank lines above current line"))
+keymap.set("n", "]<Space>", utils.blank_below, keyopts("Add count blank lines below current line"))
+
 -- Oil command to back out of file
 keymap.set("n", "-", "<CMD>Oil<CR>", keyopts("Open parent directory"))
 
