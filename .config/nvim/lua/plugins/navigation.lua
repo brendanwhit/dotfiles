@@ -173,6 +173,14 @@ return {
 				end,
 				desc = "FzfLua change normal colorschemes",
 			},
+			{
+				"<C-s>",
+				function()
+					FzfLua.command_history()
+				end,
+				mode = { "n", "x" },
+				desc = "Search for recent commands",
+			},
 		},
 		opts = {
 			winopts = {
