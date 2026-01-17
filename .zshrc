@@ -85,6 +85,10 @@ delete-stale-branches() {
     git fetch -p && git for-each-ref --format '%(refname:short) %(upstream:track)' | awk '$2 == "[gone]" {print $1}' | xargs -r git branch -D
 }
 
+unstage-conflicts() {
+    git diff --cached --name-only | xargs grep -l '^<<<<<<<\|^=======\|^>>>>>>>' 2>/dev/null | xargs -r git reset HEAD --
+}
+
 # Global variables to track worktree state for cleanup
 typeset -g CLEANUP_BRANCH_ORIGINAL_DIR=""
 typeset -g CLEANUP_BRANCH_WORKTREE_DIR=""
