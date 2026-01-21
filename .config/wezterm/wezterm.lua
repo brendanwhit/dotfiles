@@ -12,6 +12,14 @@ local config = wezterm.config_builder()
 
 -- This is where you actually apply your config choices.
 
+-- Tab bar settings for worktree management
+config.hide_tab_bar_if_only_one_tab = false
+config.use_fancy_tab_bar = true
+config.tab_bar_at_bottom = true
+config.window_frame = {
+	font_size = 14.0,  -- match your terminal font size
+}
+
 -- For example, changing the initial geometry for new windows:
 config.initial_cols = 120
 config.initial_rows = 28
@@ -57,6 +65,89 @@ config.ssh_domains = {
 	},
 }
 
+-- Tab title shows worktree branch name automatically (preserves custom titles)
+wezterm.on('format-tab-title', function(tab)
+	-- Preserve user-set custom titles (via Leader + #)
+	if tab.tab_title and tab.tab_title ~= '' then
+		return ' ' .. tab.tab_title .. ' '
+	end
+
+	local pane = tab.active_pane
+	local cwd = pane.current_working_dir
+	if cwd then
+		local path = cwd.file_path or tostring(cwd)
+		-- Match worktree paths: .claude-worktrees/repo/branch-name
+		local worktree = path:match('.claude%-worktrees/[^/]+/([^/]+)')
+		if worktree then
+			return ' ' .. worktree .. ' '
+		end
+		-- Fallback to last directory component
+		local dir = path:match('/([^/]+)/?$')
+		if dir then
+			return ' ' .. dir .. ' '
+		end
+	end
+	return ' ' .. (tab.tab_index + 1) .. ' '
+end)
+
+-- Global tab switcher (searches across ALL windows)
+wezterm.on('trigger-global-tab-switcher', function(window, pane)
+	local choices = {}
+
+	for _, mux_window in ipairs(wezterm.mux.all_windows()) do
+		for _, tab in ipairs(mux_window:tabs()) do
+			local tab_pane = tab:active_pane()
+			local cwd = tab_pane:get_current_working_dir()
+
+			-- Use custom title if set, otherwise auto-detect
+			local display = tab:get_title()
+			if display == '' then
+				if cwd then
+					local path = cwd.file_path or tostring(cwd)
+					local worktree = path:match('.claude%-worktrees/[^/]+/([^/]+)')
+					if worktree then
+						display = worktree
+					else
+						display = path:match('/([^/]+)/?$') or path
+					end
+				else
+					display = tostring(tab:tab_id())
+				end
+			end
+
+			table.insert(choices, {
+				id = tostring(mux_window:window_id()) .. ':' .. tostring(tab:tab_id()),
+				label = display,
+			})
+		end
+	end
+
+	window:perform_action(
+		act.InputSelector({
+			title = 'Switch to tab',
+			choices = choices,
+			fuzzy = true,
+			action = wezterm.action_callback(function(_, _, id, _)
+				if id then
+					local window_id, tab_id = id:match('(%d+):(%d+)')
+					for _, mux_win in ipairs(wezterm.mux.all_windows()) do
+						if tostring(mux_win:window_id()) == window_id then
+							for _, t in ipairs(mux_win:tabs()) do
+								if tostring(t:tab_id()) == tab_id then
+									t:activate()
+									mux_win:gui_window():focus()
+									return
+								end
+							end
+						end
+					end
+				end
+			end),
+		}),
+		pane
+	)
+end)
+
 -- toggle function to switch opacity, activate using the keybindings below
 wezterm.on("toggle-opacity", function(window, _)
 	local overrides = window:get_config_overrides() or {}
@@ -75,6 +166,11 @@ config.leader = { key = "Space", mods = "CTRL", timeout_milliseconds = 1000 }
 config.keys = {
 	-- Claude Code terminal-setup keybinding
 	{ key = "Enter", mods = "SHIFT", action = act.SendString("\x1b\r") },
+	-- Vim-style tab cycling (hold CTRL+SHIFT to rapid-fire)
+	{ key = "h", mods = "CTRL|SHIFT", action = act.ActivateTabRelative(-1) },
+	{ key = "l", mods = "CTRL|SHIFT", action = act.ActivateTabRelative(1) },
+	-- Global tab switcher (fuzzy search across all windows)
+	{ key = "p", mods = "CTRL|SHIFT", action = act.EmitEvent("trigger-global-tab-switcher") },
 	{ key = "o", mods = "SUPER", action = act.EmitEvent("toggle-opacity") },
 	-- tmux emulator keys (https://www.florianbellmann.com/blog/switch-from-tmux-to-wezterm)
 	{ key = "-", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
