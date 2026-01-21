@@ -160,14 +160,14 @@ return {
 			},
 			-- Messing around with colorschemes
 			{
-				"<leader>c",
+				"<leader>ac",
 				function()
 					FzfLua.awesome_colorschemes()
 				end,
 				desc = "FzfLua change neovim 'awesome' colorschemes",
 			},
 			{
-				"<leader>C",
+				"<leader>cs",
 				function()
 					FzfLua.colorschemes()
 				end,
