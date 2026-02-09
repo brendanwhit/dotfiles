@@ -17,7 +17,7 @@ config.hide_tab_bar_if_only_one_tab = false
 config.use_fancy_tab_bar = true
 config.tab_bar_at_bottom = true
 config.window_frame = {
-	font_size = 14.0,  -- match your terminal font size
+	font_size = 14.0, -- match your terminal font size
 }
 
 -- For example, changing the initial geometry for new windows:
@@ -66,10 +66,10 @@ config.ssh_domains = {
 }
 
 -- Tab title shows worktree branch name automatically (preserves custom titles)
-wezterm.on('format-tab-title', function(tab)
+wezterm.on("format-tab-title", function(tab)
 	-- Preserve user-set custom titles (via Leader + #)
-	if tab.tab_title and tab.tab_title ~= '' then
-		return ' ' .. tab.tab_title .. ' '
+	if tab.tab_title and tab.tab_title ~= "" then
+		return " " .. tab.tab_title .. " "
 	end
 
 	local pane = tab.active_pane
@@ -77,21 +77,21 @@ wezterm.on('format-tab-title', function(tab)
 	if cwd then
 		local path = cwd.file_path or tostring(cwd)
 		-- Match worktree paths: .claude-worktrees/repo/branch-name
-		local worktree = path:match('.claude%-worktrees/[^/]+/([^/]+)')
+		local worktree = path:match(".claude%-worktrees/[^/]+/([^/]+)")
 		if worktree then
-			return ' ' .. worktree .. ' '
+			return " " .. worktree .. " "
 		end
 		-- Fallback to last directory component
-		local dir = path:match('/([^/]+)/?$')
+		local dir = path:match("/([^/]+)/?$")
 		if dir then
-			return ' ' .. dir .. ' '
+			return " " .. dir .. " "
 		end
 	end
-	return ' ' .. (tab.tab_index + 1) .. ' '
+	return " " .. (tab.tab_index + 1) .. " "
 end)
 
 -- Global tab switcher (searches across ALL windows)
-wezterm.on('trigger-global-tab-switcher', function(window, pane)
+wezterm.on("trigger-global-tab-switcher", function(window, pane)
 	local choices = {}
 
 	for _, mux_window in ipairs(wezterm.mux.all_windows()) do
@@ -101,14 +101,14 @@ wezterm.on('trigger-global-tab-switcher', function(window, pane)
 
 			-- Use custom title if set, otherwise auto-detect
 			local display = tab:get_title()
-			if display == '' then
+			if display == "" then
 				if cwd then
 					local path = cwd.file_path or tostring(cwd)
-					local worktree = path:match('.claude%-worktrees/[^/]+/([^/]+)')
+					local worktree = path:match(".claude%-worktrees/[^/]+/([^/]+)")
 					if worktree then
 						display = worktree
 					else
-						display = path:match('/([^/]+)/?$') or path
+						display = path:match("/([^/]+)/?$") or path
 					end
 				else
 					display = tostring(tab:tab_id())
@@ -116,7 +116,7 @@ wezterm.on('trigger-global-tab-switcher', function(window, pane)
 			end
 
 			table.insert(choices, {
-				id = tostring(mux_window:window_id()) .. ':' .. tostring(tab:tab_id()),
+				id = tostring(mux_window:window_id()) .. ":" .. tostring(tab:tab_id()),
 				label = display,
 			})
 		end
@@ -124,12 +124,12 @@ wezterm.on('trigger-global-tab-switcher', function(window, pane)
 
 	window:perform_action(
 		act.InputSelector({
-			title = 'Switch to tab',
+			title = "Switch to tab",
 			choices = choices,
 			fuzzy = true,
 			action = wezterm.action_callback(function(_, _, id, _)
 				if id then
-					local window_id, tab_id = id:match('(%d+):(%d+)')
+					local window_id, tab_id = id:match("(%d+):(%d+)")
 					for _, mux_win in ipairs(wezterm.mux.all_windows()) do
 						if tostring(mux_win:window_id()) == window_id then
 							for _, t in ipairs(mux_win:tabs()) do
@@ -160,6 +160,46 @@ wezterm.on("toggle-opacity", function(window, _)
 	end
 	window:set_config_overrides(overrides)
 end)
+
+-- local function docker_list()
+-- 	local docker_list = {}
+-- 	local success, stdout, stderr = wezterm.run_child_process({
+-- 		"docker",
+-- 		"container",
+-- 		"ls",
+-- 		"--format",
+-- 		"{{.ID}}:{{.Names}}",
+-- 	})
+-- 	for _, line in ipairs(wezterm.split_by_newlines(stdout)) do
+-- 		local id, name = line:match("(.-):(.+)")
+-- 		if id and name then
+-- 			docker_list[id] = name
+-- 		end
+-- 	end
+-- 	return docker_list
+-- end
+--
+-- local function make_docker_fixup_func(id)
+-- 	return function(cmd)
+-- 		cmd.args = cmd.args or { "/bin/sh" }
+-- 		local wrapped = { "docker", "exec", "-it", id }
+-- 		for _, arg in ipairs(cmd.args) do
+-- 			table.insert(wrapped, arg)
+-- 		end
+-- 		cmd.args = wrapped
+-- 		return cmd
+-- 	end
+-- end
+--
+-- local function compute_exec_domains()
+-- 	local exec_domains = {}
+-- 	for id, name in pairs(docker_list()) do
+-- 		table.insert(exec_domains, wezterm.exec_domain("docker:" .. name, make_docker_fixup_func(id)))
+-- 	end
+-- 	return exec_domains
+-- end
+--
+-- config.exec_domains = compute_exec_domains()
 
 -- tmux configuration are better with a leader key
 config.leader = { key = "Space", mods = "CTRL", timeout_milliseconds = 1000 }
