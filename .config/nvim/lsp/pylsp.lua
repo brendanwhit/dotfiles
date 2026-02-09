@@ -2,29 +2,12 @@
 ---
 --- https://github.com/python-lsp/python-lsp-server
 ---
---- A Python 3.6+ implementation of the Language Server Protocol.
+--- Configured as a mypy-only LSP. All other features (completions, go-to-def,
+--- hover, etc.) are handled by basedpyright which is much faster.
 ---
---- See the [project's README](https://github.com/python-lsp/python-lsp-server) for installation instructions.
----
---- Configuration options are documented [here](https://github.com/python-lsp/python-lsp-server/blob/develop/CONFIGURATION.md).
---- In order to configure an option, it must be translated to a nested Lua table and included in the `settings` argument to the `config('pylsp', {})` function.
---- For example, in order to set the `pylsp.plugins.pycodestyle.ignore` option:
---- ```lua
---- vim.lsp.config('pylsp', {
----   settings = {
----     pylsp = {
----       plugins = {
----         pycodestyle = {
----           ignore = {'W391'},
----           maxLineLength = 100
----         }
----       }
----     }
----   }
---- })
---- ```
----
---- Note: This is a community fork of `pyls`.
+--- Install via:
+---   pipx install 'python-lsp-server[rope]'
+---   pipx inject python-lsp-server pylsp-mypy
 
 ---@type vim.lsp.Config
 return {
@@ -36,28 +19,37 @@ return {
 		"setup.cfg",
 		"requirements.txt",
 		"Pipfile",
-		".git",
 		"mypy.ini",
+		".git",
 	},
 	settings = {
 		pylsp = {
 			plugins = {
-				-- disable linting from pylsp, use ruff instead
-				pycodestyle = {
-					enabled = false,
-				},
-				pyflakes = {
-					enabled = true,
-				},
-				mccabe = {
-					enabled = true,
-				},
-				rope_autoimport = {
-					enabled = true,
-				},
+				-- Disable everything - basedpyright handles these
+				pycodestyle = { enabled = false },
+				pyflakes = { enabled = false },
+				mccabe = { enabled = false },
+				autopep8 = { enabled = false },
+				yapf = { enabled = false },
+				pylsp_black = { enabled = false },
+				pylsp_isort = { enabled = false },
+				jedi_completion = { enabled = false },
+				jedi_hover = { enabled = false },
+				jedi_references = { enabled = false },
+				jedi_signature_help = { enabled = false },
+				jedi_symbols = { enabled = false },
+				jedi_definition = { enabled = false },
+				jedi_rename = { enabled = false },
+
+				-- Keep rope_autoimport for auto-import on completion
+				-- (adds imports automatically when you complete a symbol)
+				rope_autoimport = { enabled = true },
+
+				-- mypy - the reason this LSP exists
 				pylsp_mypy = {
-					dmypy = true,
 					enabled = true,
+					dmypy = true, -- use daemon for speed
+					live_mode = false, -- run on save, not on every keystroke
 				},
 			},
 		},

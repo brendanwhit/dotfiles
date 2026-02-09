@@ -22,6 +22,50 @@ for _, v in ipairs(vim.api.nvim_get_runtime_file("lsp/*", true)) do
 end
 
 vim.lsp.enable(vim.tbl_keys(configs))
+
+-------------------------------------------
+---         :LspList command            ---
+-------------------------------------------
+vim.api.nvim_create_user_command("LspList", function()
+	local lsp_dir = vim.fn.stdpath("config") .. "/lsp"
+	local configured = {}
+
+	-- Get all configured LSPs from lsp/ directory
+	for _, file in ipairs(vim.fn.glob(lsp_dir .. "/*.lua", false, true)) do
+		local name = vim.fn.fnamemodify(file, ":t:r")
+		local config = dofile(file)
+		local cmd = config.cmd and config.cmd[1] or name
+		local installed = vim.fn.executable(cmd) == 1
+		local filetypes = config.filetypes or {}
+		configured[name] = {
+			cmd = cmd,
+			installed = installed,
+			filetypes = filetypes,
+		}
+	end
+
+	-- Get active LSP clients
+	local active_clients = {}
+	for _, client in ipairs(vim.lsp.get_clients()) do
+		active_clients[client.name] = true
+	end
+
+	-- Build output
+	local lines = { "Configured LSPs:" }
+	local sorted_names = vim.tbl_keys(configured)
+	table.sort(sorted_names)
+
+	for _, name in ipairs(sorted_names) do
+		local info = configured[name]
+		local status = info.installed and "✓" or "✗"
+		local active = active_clients[name] and " (active)" or ""
+		local ft = #info.filetypes > 0 and " [" .. table.concat(info.filetypes, ", ") .. "]" or ""
+		table.insert(lines, string.format("  %s %s%s%s", status, name, active, ft))
+	end
+
+	vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
+end, { desc = "List configured LSPs and their status" })
+
 -------------------------------------------
 --- diagnostics: linting and formatting ---
 -------------------------------------------
